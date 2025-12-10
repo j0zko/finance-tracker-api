@@ -1,0 +1,100 @@
+// prisma/schema.prisma
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ----------------------------------------------------
+// 1. CORE USER MODEL
+// ----------------------------------------------------
+model User {
+  id              String        @id @default(uuid())
+  email           String        @unique
+  passwordHash    String
+  firstName       String?
+  lastName        String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relationships
+  accounts        Account[]
+  budgets         Budget[]
+  // ADDED: Relationship to Transactions
+  transactions    Transaction[]
+}
+
+// ----------------------------------------------------
+// 2. ACCOUNT MODEL
+// ----------------------------------------------------
+model Account {
+  id              String        @id @default(uuid())
+  name            String
+  type            String        // e.g., 'Checking', 'Savings', 'Credit Card'
+  initialBalance  Decimal       @db.Decimal(10, 2) 
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relationship back to the User
+  userId          String
+  user            User          @relation(fields: [userId], references: [id]) 
+  
+  // ADDED: Relationship to Transactions
+  transactions    Transaction[]
+}
+
+// ----------------------------------------------------
+// 3. TRANSACTION MODEL (Fully Linked)
+// ----------------------------------------------------
+model Transaction {
+  id          String            @id @default(uuid())
+  amount      Decimal           @db.Decimal(10, 2)
+  description String?           // Made description optional
+  date        DateTime          @default(now())
+  category    String?           // E.g., 'Groceries', 'Salary'
+  type        TransactionType   // E.g., 'EXPENSE', 'INCOME', 'TRANSFER'
+
+  // Relationships to User (who recorded it)
+  userId      String
+  user        User              @relation(fields: [userId], references: [id])
+
+  // Relationships to Account (which account it affected)
+  accountId   String
+  account     Account           @relation(fields: [accountId], references: [id])
+
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([userId]) // Index for faster filtering by user
+  @@index([accountId]) // Index for faster filtering by account
+}
+
+// ----------------------------------------------------
+// 4. BUDGET MODEL 
+// ----------------------------------------------------
+model Budget {
+  id          String        @id @default(uuid())
+  category    String
+  limit       Decimal       @db.Decimal(10, 2)
+  year        Int
+  month       Int           // 1 for January, 12 for December
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relationship back to the User
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+}
+
+// ----------------------------------------------------
+// 5. ENUMS
+// ----------------------------------------------------
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}

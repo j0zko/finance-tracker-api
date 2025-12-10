@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    // --- File Layout ---
+    "rootDir": "./src",
+    "outDir": "./dist",
+    // --- Module & Target Settings ---
+    // Fixes the import errors by telling TypeScript how to resolve modules.
+    "moduleResolution": "NodeNext",
+    "module": "NodeNext",
+    "target": "ES2020", // Compile code to a modern JS standard
+    // --- Interoperability ---
+    // Allows importing CommonJS modules using the ES6 default syntax (e.g., 'import express from "express"').
+    "esModuleInterop": true,
+    // --- Strictness & Checks ---
+    "strict": true, // Enables all strict type-checking options
+    "skipLibCheck": true, // Speeds up compilation by skipping checks on declaration files (like node_modules)
+    // --- Node.js Environment Types ---
+    // Explicitly include Node types for globals like process, require, etc.
+    "types": [
+      "node"
+    ],
+    // --- Output Options (Optional, good practice) ---
+    "declaration": true,
+    "declarationMap": true,
+    // --- Optional Strictness (Good for Production) ---
+    "noImplicitReturns": true,
+    "noUnusedLocals": true
+  },
+  "include": [
+    "src/**/*" // Includes all files under the src directory
+  ]
+}

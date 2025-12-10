@@ -5,7 +5,7 @@ import cors from 'cors';
 import AuthRouter from './routes/auth.routes.js';
 import transactionRouter from './routes/transaction.routes.js';
 import budgetRouter from './routes/budget.routes.js';
-// REMOVE THE DEBUG LINES HERE
+// if something goes wrong with env variables, uncomment this to debug
 // console.log('--- ENV CHECK ---');
 // console.log('DATABASE_URL:', process.env.DATABASE_URL);
 // console.log('--- ENV CHECK END ---');
@@ -15,7 +15,6 @@ const PORT = 3000;
 app.use(express.json()); // Body parser for JSON requests
 app.use(cors()); // Enable CORS for development
 // Mount Routers
-// The prefix is '/api/accounts'
 app.use('/api/accounts', accountRouter);
 app.use('/api/auth', AuthRouter);
 app.use('/api/transactions', transactionRouter);

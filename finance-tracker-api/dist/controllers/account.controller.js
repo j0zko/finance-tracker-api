@@ -1,7 +1,7 @@
 // src/controllers/account.controller.ts
 import { Prisma } from '@prisma/client';
 import prisma from '../prisma/prisma.service.js';
-// --- GET /api/v1/accounts - Get all accounts for a user (Protected) ---
+//  GET /api/v1/accounts - Get all accounts for a user (Protected) 
 export async function getAccounts(req, res) {
     // Get the user ID from the middleware
     const userId = req.userId;
@@ -34,7 +34,6 @@ export async function getAccounts(req, res) {
     }
 }
 // --- POST /api/v1/accounts - Create a new account (Protected) ---
-// THIS FUNCTION WAS MISSING AND CAUSED THE BUILD ERROR
 export async function createAccount(req, res) {
     // We use Request | AuthenticatedRequest here for type safety, though it should be protected
     const { name, type, initialBalance } = req.body;

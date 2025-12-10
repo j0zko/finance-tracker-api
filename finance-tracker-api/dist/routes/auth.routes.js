@@ -1,6 +1,5 @@
 // src/routes/auth.routes.ts
 import { Router } from 'express';
-// MUST ADD .js extension here!
 import { register, login, refresh } from '../controllers/auth.controller.js';
 const router = Router();
 // POST /api/v1/auth/register - Create a new user (Public)

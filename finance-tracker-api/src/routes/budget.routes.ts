@@ -1,7 +1,7 @@
 // src/routes/budget.routes.ts
 
 import { Router } from 'express';
-import { createBudget, getBudgets } from '../controllers/budget.controller.js';
+import { createBudget, getBudgets, getBudgetReport } from '../controllers/budget.controller.js';
 import { authenticateJWT } from '../middleware/auth.middleware.js';
 
 const router = Router();
@@ -11,5 +11,5 @@ router.post('/', authenticateJWT, createBudget);
 
 // GET /api/v1/budgets - Fetch user's budgets (Protected)
 router.get('/', authenticateJWT, getBudgets);
-
+router.get('/report', authenticateJWT, getBudgetReport);
 export default router;

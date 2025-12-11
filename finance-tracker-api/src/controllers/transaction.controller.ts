@@ -36,7 +36,6 @@ export async function createTransfer(req: AuthenticatedRequest, res: Response): 
     }
 
     // 2. Execute the transfer using a database transaction
-    // This ensures both operations succeed or both fail (atomicity). 
     const [expenseTransaction, incomeTransaction] = await prisma.$transaction([
       // Operation 1: EXPENSE (DEBIT) from Source Account
       prisma.transaction.create({
@@ -128,9 +127,12 @@ export async function createTransaction(req: AuthenticatedRequest, res: Response
   }
 }
 
-// --- GET /api/v1/transactions - Get all transactions for a user ---
+
+// --- GET /api/v1/transactions - Get all transactions for a user (with Pagination & Filtering) ---
 export async function getTransactions(req: AuthenticatedRequest, res: Response): Promise<void> {
   const userId = req.userId;
+  // Extract query parameters for filtering and pagination
+  const { page, limit, startDate, endDate } = req.query;
 
   if (!userId) {
     res.status(401).json({ error: 'User not authenticated.' });
@@ -138,10 +140,39 @@ export async function getTransactions(req: AuthenticatedRequest, res: Response):
   }
 
   try {
+    // --- 1. Pagination Logic ---
+    const pageNumber = parseInt(page as string) || 1;
+    const limitNumber = parseInt(limit as string) || 20; // Default limit of 20
+    const skip = (pageNumber - 1) * limitNumber;
+
+    // --- 2. Filtering Logic ---
+    const whereClause: Prisma.TransactionWhereInput = {
+      userId: userId,
+    };
+
+    // Date Range Filtering
+    if (startDate || endDate) {
+      whereClause.date = {};
+      if (startDate) {
+        whereClause.date.gte = new Date(startDate as string);
+      }
+      if (endDate) {
+        // Set the end date to the end of the day to include transactions on that day
+        const end = new Date(endDate as string);
+        end.setHours(23, 59, 59, 999);
+        whereClause.date.lte = end;
+      }
+    }
+    // --- 3. Execute Queries ---
+
+    // Get total count (for calculating total pages)
+    const totalItems = await prisma.transaction.count({
+      where: whereClause,
+    });
+
+    // Get paginated transactions
     const transactions = await prisma.transaction.findMany({
-      where: {
-        userId: userId,
-      },
+      where: whereClause,
       include: {
         account: {
           select: { name: true, type: true }
@@ -149,10 +180,22 @@ export async function getTransactions(req: AuthenticatedRequest, res: Response):
       },
       orderBy: {
         date: 'desc'
-      }
+      },
+      // Apply pagination parameters
+      skip: skip,
+      take: limitNumber,
     });
 
-    res.status(200).json(transactions);
+    // Calculate metadata for the client
+    const totalPages = Math.ceil(totalItems / limitNumber);
+    const metadata = {
+      totalItems,
+      totalPages,
+      currentPage: pageNumber,
+      itemsPerPage: limitNumber,
+    };
+
+    res.status(200).json({ transactions, metadata });
 
   } catch (error) {
     console.error('Get Transactions error:', error);
